@@ -38,14 +38,29 @@ namespace Book_Management_System.Controllers
             return Ok(book);
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<List<Book>>> AddBook(int id)
-        //{
-        //    var book = await _Dbcontext.Books.FindAsync(id);
-        //    if (book is null)
-        //        return NotFound();
+        [HttpPost]
+        public async Task<ActionResult<Book>> AddBook(Book newbook)
+        {
+            if (newbook is null)
+                return BadRequest();
 
-        //    return Ok(book);
+            _Dbcontext.Books.Add(newbook);
+            await _Dbcontext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetBooksById), new { id = newbook.Id }, newbook);
+        }
+
+        //[HttpDelete("{id}")]
+        //public async Task<ActionResult<Book>> DeleteBook(int id)
+        //{
+
+        //    if (newbook is null)
+        //        return BadRequest();
+
+        //    _Dbcontext.Books.Add(newbook);
+        //    await _Dbcontext.SaveChangesAsync();
+
+        //    return CreatedAtAction(nameof(GetBooksById), new { id = newbook.Id }, newbook);
         //}
     }
 }
