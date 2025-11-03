@@ -25,12 +25,26 @@ namespace Book_Management_System.Controllers
             return Ok(books);
         }
 
+        [HttpGet("category/{categoryId}")]
+        public async Task<ActionResult<List<Book>>> GetBooksByCategory(int categoryId)
+        {
+            var books = await _Dbcontext.Books
+                            .Include(b => b.Category)
+                            .Where(b => b.CategoryId == categoryId)
+                            .ToListAsync();
+
+            if (books == null || books.Count == 0)
+                return NotFound();
+
+            return Ok(books);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<List<Book>>> GetBooksById(int id)
         {
             var book = await _Dbcontext.Books
                             .Include(b => b.Category)
-                            .ToListAsync();
+                            .FirstOrDefaultAsync(b => b.Id == id);
 
             if (book is null)
                 return NotFound();
@@ -50,17 +64,42 @@ namespace Book_Management_System.Controllers
             return CreatedAtAction(nameof(GetBooksById), new { id = newbook.Id }, newbook);
         }
 
-        //[HttpDelete("{id}")]
-        //public async Task<ActionResult<Book>> DeleteBook(int id)
-        //{
+        [HttpPost("{id}")]
+        public async Task<ActionResult<Book>> UpdateBook(int id, Book UpdatedBook)
+        {
+            var book = await _Dbcontext.Books
+                           .Include(b => b.Category)
+                           .FirstOrDefaultAsync(b => b.Id == id);
 
-        //    if (newbook is null)
-        //        return BadRequest();
+            if (book is null)
+                return BadRequest();
 
-        //    _Dbcontext.Books.Add(newbook);
-        //    await _Dbcontext.SaveChangesAsync();
+            book.Title = UpdatedBook.Title;
+            book.Author = UpdatedBook.Author;
+            book.ISBN = UpdatedBook.ISBN;
+            book.Price = UpdatedBook.Price;
+            book.CategoryId = UpdatedBook.CategoryId;
+            book.Category = UpdatedBook.Category;            
 
-        //    return CreatedAtAction(nameof(GetBooksById), new { id = newbook.Id }, newbook);
-        //}
+            await _Dbcontext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Book>> DeleteBook(int id)
+        {
+            var book = await _Dbcontext.Books
+                           .Include(b => b.Category)
+                           .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (book is null)
+                return BadRequest();
+
+            _Dbcontext.Remove(book);
+            await _Dbcontext.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }
